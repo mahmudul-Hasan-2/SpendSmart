@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -13,21 +13,40 @@ app.use(express.json());
 
 const MONGO_URI = process.env.MONGO_URI || "";
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// ক্যাশড ডাটাবেসের সঠিক টাইপ ডিফাইন করা (typeof mongoose অথবা mogoose.Mongoose)
+let cachedDb: typeof mongoose | null = null;
+
+async function connectDB() {
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
+  }
+  const opts = {
+    bufferCommands: false,
+  };
+  cachedDb = await mongoose.connect(MONGO_URI, opts);
+  console.log("MongoDB connected successfully");
+  return cachedDb;
+}
+
+// মিডলওয়্যার হিসেবে ডাটাবেস কানেকশন নিশ্চিত করা
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection middleware error:", error);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
 
 app.use("/api/expenses", expenseRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: Response) => {
   res.send("SpendSmart API is running...");
 });
 
-// Vercel-এর জন্য export করো
 export default app;
 
-// Local development-এর জন্য শুধু listen করো
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
