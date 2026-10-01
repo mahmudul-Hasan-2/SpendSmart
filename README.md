@@ -4,7 +4,7 @@ SpendSmart is a modern, responsive full-stack web application designed to help u
 
 ## 🚀 Live Demo & Preview
 
-- **Live URL:** [https://spendsmart-client.vercel.app](https://spendsmart-client.vercel.app/)
+- **Live URL:** [https://spendsmart-client.vercel.app](https://spendsmart-client.vercel.app)
 
 - **Client App Directory:** `/SpendSmart-client`
 
